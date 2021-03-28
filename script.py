@@ -10,7 +10,9 @@ from time import sleep
 
 mongo_uri = os.getenv('MONGO_URI', 'mongodb://test:password@localhost:27017/test?authSource=admin')
 username = os.getenv('EMAIL_USERNAME')
-password = os.getenv('EMAIL_PASSWORD', getpass())
+password = os.getenv('EMAIL_PASSWORD')
+if password is None:
+    password = getpass()
 interval = os.getenv('INTERVAL')  # minutes
 
 db = MongoClient(mongo_uri).get_database()
