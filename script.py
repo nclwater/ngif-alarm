@@ -21,14 +21,14 @@ sensors = db.sensors
 
 last_alarm = {}
 
-number_of_readings = 100
-threshold = 0  # mm
-period = 15  # minutes
-
 
 def check_rain():
     name = 'GP2-10-60 (Ensemble E + RG)'
     field = 'Pit Rain Gauge#@1m'
+    number_of_readings = 100
+    threshold = 0  # mm
+    period = 15  # minutes
+
     # Get the last n readings
     df = pd.DataFrame(
         list(readings.find(
@@ -69,19 +69,21 @@ def check_power():
         return
 
     rolling = df.set_index('time').groupby('name')['Power'].rolling(10).sum()
-    rolling = rolling[rolling > 0].reset_index().groupby('name').time.max()
+    rolling = rolling[rolling == 0].reset_index().groupby('name').time.max()
+
+    if len(rolling) == 0:
+        return
 
     message = 'The following loggers recorded ten consecutive zero power readings:<br><br>'
     send = False
 
-    if len(rolling) >= 0:
-        for name, time in rolling.items():
-            if name not in last_alarm.keys() or time != last_alarm[name]:
-                send = True
-                last_alarm[name] = time
-                message += f'{name} at {time}<br>'
-        if send:
-            send_email(username, 'Power warning', message)
+    for name, time in rolling.items():
+        if name not in last_alarm.keys() or time != last_alarm[name]:
+            send = True
+            last_alarm[name] = time
+            message += f'{name} at {time}<br>'
+    if send:
+        send_email(username, 'Power warning', message)
 
 
 def send_email(email_recipient,
