@@ -24,7 +24,7 @@ threshold = 0  # mm
 period = 15  # minutes
 
 
-def check_rain(previous_time=None):
+def check_rain():
     name = 'GP2-10-60 (Ensemble E + RG)'
     field = 'Pit Rain Gauge#@1m'
     # Get the last n readings
@@ -47,15 +47,11 @@ def check_rain(previous_time=None):
 
     if len(rolling) >= 0:
         time = rolling.index.max()
-        if previous_time is not None and time <= previous_time:
-            return
         key = f'{name}/{field}'
         if key not in last_alarm.keys() or time != last_alarm[key]:
             last_alarm[key] = time
             send_email(username, 'Ensemble E Rainfall',
                        df[(df.time <= time) & (df.time >= time-timedelta(minutes=15))].to_html(index=False))
-
-        return time
 
 
 def send_email(email_recipient,
@@ -81,9 +77,8 @@ def send_email(email_recipient,
 
 
 def check_rain_periodically():
-    previous_time = check_rain()
     while True:
-        previous_time = check_rain(previous_time)
+        check_rain()
         if interval is None:
             break
         sleep(int(interval) * 60)
