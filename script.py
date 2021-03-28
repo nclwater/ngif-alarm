@@ -26,7 +26,7 @@ def check_rain():
     name = 'GP2-10-60 (Ensemble E + RG)'
     field = 'Pit Rain Gauge#@1m'
     number_of_readings = 100
-    threshold = 0  # mm
+    threshold = 3  # mm
     period = 15  # minutes
 
     # Get the last n readings
