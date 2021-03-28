@@ -54,6 +54,34 @@ def check_rain():
                        df[(df.time <= time) & (df.time >= time-timedelta(minutes=15))].to_html(index=False))
 
 
+def check_power():
+    # Get all elements with power readings from the last 6 hours
+    df = pd.DataFrame(
+        list(readings.find(
+            {
+                'time': {'$gt': pd.Timestamp.now() - pd.Timedelta(hours=6)},
+                'Power': {'$exists': True},
+            },
+            {'name': 1, 'Power': 1, 'time': 1, '_id': 0})))
+    if len(df) == 0:
+        return
+
+    rolling = df.set_index('time').groupby('name')['Power'].rolling(10).sum()
+    rolling = rolling[rolling > 0].reset_index().groupby('name').time.max()
+
+    message = 'The following loggers recorded ten consecutive zero power readings:<br><br>'
+    send = False
+
+    if len(rolling) >= 0:
+        for name, time in rolling.items():
+            if name not in last_alarm.keys() or time != last_alarm[name]:
+                send = True
+                last_alarm[name] = time
+                message += f'{name} at {time}<br>'
+        if send:
+            send_email(username, 'Power warning', message)
+
+
 def send_email(email_recipient,
                email_subject,
                email_message):
@@ -76,13 +104,14 @@ def send_email(email_recipient,
     server.quit()
 
 
-def check_rain_periodically():
+def check_rain_and_power_periodically():
     while True:
         check_rain()
+        check_power()
         if interval is None:
             break
         sleep(int(interval) * 60)
 
 
 if __name__ == '__main__':
-    check_rain_periodically()
+    check_rain_and_power_periodically()
