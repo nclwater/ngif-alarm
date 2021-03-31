@@ -47,7 +47,7 @@ def check_rain():
     rolling = df.set_index('time')[field].rolling(f'{period}min').sum()
     rolling = rolling[rolling >= threshold]
 
-    if len(rolling) >= 0:
+    if len(rolling) > 0:
         time = rolling.index.max()
         key = f'{name}/{field}'
         if key not in last_alarm.keys() or time != last_alarm[key]:
