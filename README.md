@@ -1,6 +1,6 @@
 # NGIF Alarm
 
-![build](https://github.com/fmcclean/ngif-alarm/workflows/build/badge.svg)
+![build](https://github.com/nclwater/ngif-alarm/workflows/build/badge.svg)
 
 Python script that checks the NGIF database and sends emails
 
